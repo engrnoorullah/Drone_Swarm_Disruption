@@ -1,9 +1,6 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-import torch
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
 import os
 import scipy.stats as st
 from scipy.stats import sem, t
@@ -18,8 +15,6 @@ import math
 import itertools
 import random
 from collections import defaultdict
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
 from mpl_toolkits.mplot3d import Axes3D
 import copy
 from matplotlib.colors import ListedColormap

@@ -2,12 +2,9 @@ import networkx as nx
 import numpy as np
 import os
 import random
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()  # Ensure TensorFlow 1.x compatibility
 
 
 from SwarmGraph import SwarmGraph
-from DQN_train import SumTree, UAVSEnv, DQNPrioritizedReplay, Memory
 from utilities import save_graph_snapshot, plot_graph,  calculate_distance_to_target, get_disconnected_component_sizes, geometric_center
 from COOP_Calc import dist_Rlink, update_node_weights, calculate_coop_score
 
@@ -227,6 +224,9 @@ def apply_closeness_heuristic(G, images, model, version, method, swarm_graph,run
     return coop_ratios, component_sizes, total_weight, removal_count, total_coop_time, frame_paths, weight_within_distance, reached_target_percentage, largest_component_distance, largest_component_reached
 
 def dqn_coop_ratios(G, images, model, version, method, swarm_graph, run,target_distance=1.5):
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
+    from DQN_train import UAVSEnv, DQNPrioritizedReplay
     coop_scores = []
     coop_ratios = []
     total_coop_time = 0

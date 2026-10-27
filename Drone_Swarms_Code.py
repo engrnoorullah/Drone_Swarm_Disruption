@@ -1,11 +1,6 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-import torch
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
-from dqn_batch import DQNPrioritizedReplay
-from uavs_env import UAVSEnv
 import os
 import itertools
 import random
@@ -13,8 +8,6 @@ import copy
 import time
 import multiprocessing as mp
 from collections import defaultdict
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()  # Ensure TensorFlow 1.x compatibility
 
 #np.random.seed(1)
 

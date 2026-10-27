@@ -2,8 +2,6 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
 import os
 import scipy.stats as st
 from scipy.stats import sem, t
@@ -16,8 +14,6 @@ import itertools
 import random
 import multiprocessing as mp
 from collections import defaultdict
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
 from mpl_toolkits.mplot3d import Axes3D
 import copy
 from matplotlib.colors import ListedColormap
@@ -79,20 +75,22 @@ def calculate_power_of_attack(G, target):
             num_components += 1
             component_weighted_distance = sum(G.nodes[node]['weight'] / np.linalg.norm(np.array(G.nodes[node]['pos']) - target) for node in component)
             total_weighted_distance += component_weighted_distance
-    
+
     if num_components > 0:
         return total_weighted_distance / num_components
     return 0
 
 def worker(graph, combination, target, swarm_graph):
-    graph_copy = graph.copy()
+    swarm_graph = copy.deepcopy(swarm_graph)
+    swarm_graph.G = copy.deepcopy(graph)
+    graph_copy = swarm_graph.get_graph()
     original_data = None
     for node in combination:
         swarm_graph.update_positions()  # Adjusting positions
         swarm_graph.remove_node(node)  # Adjusting node removal
         graph_copy = swarm_graph.get_graph()  # Getting updated graph
         coop_score, _, _, original_data = calculate_coop_score(graph_copy, len(combination), {}, original_data)
-    
+
     power_of_attack = calculate_power_of_attack(graph_copy, target)
     return (coop_score, power_of_attack, combination)
 

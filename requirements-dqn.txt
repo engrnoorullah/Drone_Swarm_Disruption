@@ -1,0 +1,5 @@
+# Optional legacy comparison only. Not a tested reproduction environment.
+-r requirements.txt
+numpy<2
+tensorflow>=2.13,<2.16
+# A compatible checkpoint and repairs described in docs/REPRODUCIBILITY.md are also needed.

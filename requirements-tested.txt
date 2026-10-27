@@ -1,0 +1,6 @@
+# Direct versions checked on Python 3.12.14; not a transitive lockfile or DQN environment.
+numpy==2.3.5
+networkx==3.4.2
+matplotlib==3.10.8
+scipy==1.17.0
+imageio==2.37.0

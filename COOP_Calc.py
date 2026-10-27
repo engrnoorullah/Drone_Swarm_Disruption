@@ -23,6 +23,8 @@ def update_node_weights(G, target, max_distance, prev_connections, mu_dist, lamb
         node[1]['Theta']  += (alpha * proximity_factor)
 
 def calculate_coop_score(G, removal_count,  prev_connections, original_data=None, alpha=0.1, beta=0.01, gamma=0.1, lambda_dist=0.5, mu_dist=0.5, target=np.array([9, 9, 4]), speed = 1.0, area_dims=(10, 10, 10)):
+    if G.number_of_nodes() == 0:
+        return 0.0, 0, 0.0, original_data
     nodes = list(G.nodes())
     node_positions = {node: np.array(pos, dtype=float) for node, pos in nx.get_node_attributes(G, 'pos').items()}
     
@@ -34,7 +36,7 @@ def calculate_coop_score(G, removal_count,  prev_connections, original_data=None
         node_weights = nx.get_node_attributes(G, 'weight')
         original_data = {
             'original_node_weights_sum': sum(node_weights.values()),
-            'original_possible_connections': (NUM_DRONES * NUM_DRONES-1)/2,  # Initialize this value correctly if needed
+            'original_possible_connections': len(nodes) * (len(nodes) - 1) / 2,
             'original_component_factor': None
         }
     update_node_weights(G, target, max_distance, prev_connections, mu_dist, lambda_dist, alpha, beta, gamma)
@@ -52,11 +54,13 @@ def calculate_coop_score(G, removal_count,  prev_connections, original_data=None
         reliability = math.exp(-lambda_dist * distance)
         total_comb_sum += 1
         weighted_comb_sum += reliability
-    normalized_component_factor = weighted_comb_sum / original_data['original_possible_connections']
+    possible_connections = original_data['original_possible_connections']
+    normalized_component_factor = weighted_comb_sum / possible_connections if possible_connections > 0 else 0.0
     modified_node_thetas_sum = sum(node_thetas.values())
 
     # Calculate cooperative score
-    coop_score = (modified_node_thetas_sum / original_data['original_node_weights_sum']) * normalized_component_factor
+    initial_weight = original_data['original_node_weights_sum']
+    coop_score = (modified_node_thetas_sum / initial_weight) * normalized_component_factor if initial_weight > 0 else 0.0
     original_data['original_component_factor'] = weighted_comb_sum
 
     # Return values including updated original data

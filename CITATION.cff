@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "Cite the article for research, and record the commit and configuration for software results."
+title: "Drone Swarm Disruption"
+type: software
+authors:
+  - family-names: Ullah
+    given-names: Noor
+repository-code: "https://github.com/engrnoorullah/Drone_Swarm_Disruption"
+preferred-citation:
+  type: article
+  title: "Uncertainty-Aware Drone Swarm Disruption for Threat Mitigation"
+  authors:
+    - family-names: Ullah
+      given-names: Noor
+    - family-names: Djenouri
+      given-names: Youcef
+    - family-names: Michalak
+      given-names: Tomasz
+    - family-names: Belbachir
+      given-names: Ahmed Nabil
+    - family-names: Srivastava
+      given-names: Gautam
+  journal: "IEEE Internet of Things Journal"
+  volume: "13"
+  issue: "2"
+  start: 1978
+  end: 1987
+  year: 2026
+  doi: "10.1109/JIOT.2025.3626254"

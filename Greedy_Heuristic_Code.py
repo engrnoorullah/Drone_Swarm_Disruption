@@ -1,11 +1,6 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-import torch
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
-from dqn_batch import DQNPrioritizedReplay
-from uavs_env import UAVSEnv
 import os
 import scipy.stats as st
 from scipy.stats import sem, t
@@ -22,8 +17,6 @@ import itertools
 import random
 import multiprocessing as mp
 from collections import defaultdict
-from torch_geometric.data import Data
-from torch_geometric.utils import to_networkx
 from mpl_toolkits.mplot3d import Axes3D
 import copy
 from matplotlib.colors import ListedColormap
@@ -108,12 +101,12 @@ def update_node_weights(G, target, max_distance, prev_connections, mu_dist, lamb
         if 'Theta' not in node[1]:
             node[1]['Theta'] = node[1]['weight']
         node[1]['Theta']  += (alpha * proximity_factor)
-        
+
 def calculate_coop_score1(G, removal_count,  prev_connections, original_data=None, alpha=0.1, beta=0.01, gamma=0.1, lambda_dist=0.5, mu_dist=0.5, target=np.array([9, 9, 4]), speed = 1.0, area_dims=(10, 10, 10)):
     nodes = list(G.nodes())
-    
+
     max_distance = np.linalg.norm([area_dims[0], area_dims[1], area_dims[2]])
-    
+
 
     # Initialize original_data if not already present
     if removal_count == 0 or original_data is None:
@@ -208,7 +201,7 @@ def get_node_color(weight):
         (0.8, 0.9, 'brown'),
         (0.9, 1, 'black')
     ]
-    
+
     # Determine color based on the weight
     for (start, end, color) in color_ranges:
         if start <= weight < end:
@@ -233,7 +226,7 @@ def save_graph_snapshot1(G1, model, version, method, run, coop_score1, removal_c
     nx.draw(G1, pos, ax=graph_ax, node_size=100, with_labels=False, node_color=node_colors, edge_color='grey')
     graph_ax.axis('off')  # Turn off the axis for the graph
 
-   
+
 
     # Metrics extraction
     original_sum_thetas = sum(node_thetas.values())# None if removal_count == 0 else original_data1['original_node_weights_sum']# if removal_count == 0 else None
@@ -321,7 +314,7 @@ def save_graph_snapshot2(G2, model, version, method, run, coop_score2, removal_c
         center_of_mass = geometric_center(largest_component, nx.get_node_attributes(G2, 'pos'))
         distance = calculate_distance_to_target(center_of_mass, target)
         largest_component_distance = min(largest_component_distance, distance)
-    
+
     # Initialize the weighted distance sum
     weighted_distance_sum = 0
     comp_count = 0
@@ -384,7 +377,7 @@ def within_target_distance(G, target, target_distance):
     total_weight = sum(nx.get_node_attributes(G, 'weight').values())
     # Calculate weight within the target distance
     weight_within_distance = sum(G.nodes[node]['weight'] for node in distances if distances[node] <= target_distance)
-    
+
     # Check if 75% of the weight is within the target distance
     return weight_within_distance / total_weight >= 0.75
 
@@ -432,7 +425,7 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
         original_score2, _, _, original_data2 = calculate_coop_score2(G_copy2, removal_count2, original_data2)
         # Testing node removal for Cs
         for node in list(G_copy1.nodes()):
-            
+
             swarm_graph.G = G_copy1.copy()
             swarm_graph.remove_node(node)
             swarm_graph.update_positions()
@@ -445,7 +438,7 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
             if score_change1 > max_decrease1:
                 max_decrease1 = score_change1
                 best_node1 = node
-            
+
             # Track the closest decrease to max_decrease1 or original_score1 if no improvement found
             difference_to_max = abs(max_decrease1 - score_change1)
             difference_to_original = abs(original_score1 - new_score1)
@@ -456,9 +449,9 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
                 closest_node1 = node
 
         # Decide which node to remove based on the findings
-        if best_node1:
+        if best_node1 is not None:
             node_to_remove1 = best_node1
-        elif closest_node1:
+        elif closest_node1 is not None:
             node_to_remove1 = closest_node1
             print(f"Removing node {closest_node1} with score change closest to max decrease or original score.")
         else:
@@ -467,7 +460,7 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
 
 
         # Apply best removal found for Cs
-        #if best_node1:
+        #if best_node1 is not None:
         swarm_graph.G = original_G1
         swarm_graph.remove_node(node_to_remove1)
         removal_count1 += 1
@@ -480,7 +473,7 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
 
         # Testing node removal for Coop
         for node in list(G_copy2.nodes()):
-            
+
             swarm_graph.G = G_copy2.copy()
             swarm_graph.remove_node(node)
             swarm_graph.update_positions()
@@ -502,9 +495,9 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
                 closest_node2 = node
 
         # Decide which node to remove based on the findings
-        if best_node2:
+        if best_node2 is not None:
             node_to_remove2 = best_node2
-        elif closest_node2:
+        elif closest_node2 is not None:
             node_to_remove2 = closest_node2
             print(f"Removing node {closest_node2} with score change closest to max decrease or original score.")
         else:
@@ -512,7 +505,7 @@ def greedy_removal_heuristic(G, images, model, version, method, swarm_graph, run
             break
 
         # Apply best removal found for Coop
-        #if best_node2:
+        #if best_node2 is not None:
         swarm_graph.G = original_G2
         swarm_graph.remove_node(node_to_remove2)
         removal_count2 += 1
@@ -584,7 +577,7 @@ def worker(method, run, swarm_graph):
     removal_count = 0     # Initialize removal_count with a default value
 
     try:
-    
+
         if method == 'greedy':
             G_copy = copy.deepcopy(G_copy)
             results['coop_ratios1'], results['coop_ratios2'], component_sizes, total_weight, removal_count, coop_times[method], frame_paths1, frame_paths2, weight_within_distance, reached_percentage, largest_component_distance, largest_component_reached = greedy_removal_heuristic(G_copy, images, model, version, method, swarm_graph, run)
@@ -692,7 +685,7 @@ def main():
         aggregated_results[model_version][method]['coop_ratios2'].append(result['coop_ratios2'])
 
     aggregated_results = defaultdict(lambda: defaultdict(list))
-    
+
     coop_ratios1_data = defaultdict(lambda: defaultdict(list))
     coop_ratios2_data = defaultdict(lambda: defaultdict(list))
 

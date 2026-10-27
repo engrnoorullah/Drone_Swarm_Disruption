@@ -1,10 +1,13 @@
 import numpy as np
 import networkx as nx
 import random
+import math
 import matplotlib.pyplot as plt
 
 class SwarmGraph:
     def __init__(self, num_nodes=100, area_width=10, area_height=10, area_depth=10, min_sep=0.02, max_velocity=0.1, target=(9, 9, 4), communication_range=1):
+        if not isinstance(num_nodes, int) or num_nodes < 1:
+            raise ValueError("num_nodes must be a positive integer")
         self.num_nodes = num_nodes
         self.area_width = area_width
         self.area_height = area_height
@@ -18,7 +21,7 @@ class SwarmGraph:
 
     def initialize_graph(self):
         # Calculate grid size along each dimension
-        grid_size = int(round(self.num_nodes ** (1/3)))
+        grid_size = math.ceil(self.num_nodes ** (1/3))
         # Calculate spacing based on the minimum dimension to fit all nodes
         x_spacing = 0.2
         y_spacing = 0.2
@@ -44,8 +47,10 @@ class SwarmGraph:
                         self.G.add_node(index, pos=pos, weight=weight, velocity=velocity, pbest=pos.copy(), Theta=Theta)
                         positions[index] = pos
 
-                    index += 1
+                        index += 1
 
+        if self.G.number_of_nodes() != self.num_nodes:
+            raise ValueError("minimum separation prevents the requested grid size")
         self.add_small_world_edges()
 
     def add_small_world_edges(self):
@@ -75,7 +80,7 @@ class SwarmGraph:
                     # Ensure the new neighbor is not already connected and is not the same node
                     if new_neighbor not in current_neighbors and new_neighbor != node:
                         # Check if the node is already at its connection limit before rewiring
-                        if self.G.degree(node) < max_connections:
+                        if self.G.degree(node) < max_connections and self.should_add_edge(node, new_neighbor):
                             self.G.remove_edge(node, neighbor)
                             # Add new edge if it's still under the limit after removing one
                             if self.G.degree(node) < max_connections and self.should_add_edge(node, new_neighbor):
@@ -83,7 +88,8 @@ class SwarmGraph:
 
     def should_add_edge(self, node1, node2):
         distance = np.linalg.norm(self.G.nodes[node1]['pos'] - self.G.nodes[node2]['pos'])
-        return self.calculate_reliability(distance) > 0
+        return (self.G.degree(node1) < 5 and self.G.degree(node2) < 5
+                and self.calculate_reliability(distance) > 0)
 
     def calculate_reliability(self, distance):
         d_min = 0.05
@@ -99,6 +105,8 @@ class SwarmGraph:
             self.G.remove_node(node)
 
     def update_positions(self):
+        if self.G.number_of_nodes() == 0:
+            return
         # Calculate the center of mass based on current positions, not initial positions
         center_of_mass = np.mean([self.G.nodes[node]['pos'] for node in self.G.nodes()], axis=0)
         direction = self.target - center_of_mass
